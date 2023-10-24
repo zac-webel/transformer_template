@@ -75,6 +75,19 @@ def decoder(decoder_input_embeddings, encoder_output):
 
     return residual_connection_3
 
+def gpt(gpt_input_embeddings):
+    attention = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim, dropout=0.1)
+    masked_multi_head_attn = attention(query=gpt_input_embeddings, value=gpt_input_embeddings, use_causal_mask=True, return_attention_scores=False)
+    normalized_embeddings = layers.LayerNormalization()(gpt_input_embeddings)
+    residual_connection_1 = layers.Add()([normalized_embeddings, masked_multi_head_attn])
+    ff = layers.Dense(ff_dim, activation='relu')(residual_connection_1)
+    ff = layers.Dense(embed_dim)(ff)
+    normalized_residual_1 = layers.LayerNormalization()(residual_connection_1)
+    residual_connection_2 = layers.Add()([normalized_residual_1, ff])
+    return residual_connection_2
+
+
+
 
 num_heads = 2
 ff_dim = 128
